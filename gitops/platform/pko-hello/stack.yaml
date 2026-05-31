@@ -1,0 +1,17 @@
+apiVersion: pulumi.com/v1
+kind: Stack
+metadata:
+  name: pko-hello
+  namespace: platform-pulumi
+  labels:
+    app.kubernetes.io/managed-by: argocd
+    app.kubernetes.io/part-of: hetzner-pulumi-platform
+spec:
+  stack: dev
+  programRef:
+    name: pko-hello
+  backend: file:///tmp/pulumi-state
+  useLocalStackOnly: true
+  destroyOnFinalize: true
+  serviceAccountName: pulumi-kubernetes-operator
+  workspaceReclaimPolicy: Delete

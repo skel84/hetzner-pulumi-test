@@ -1,0 +1,19 @@
+apiVersion: pulumi.com/v1
+kind: Program
+metadata:
+  name: pko-hello
+  namespace: platform-pulumi
+  labels:
+    app.kubernetes.io/managed-by: argocd
+    app.kubernetes.io/part-of: hetzner-pulumi-platform
+program:
+  packages:
+    random: 4.16.8
+  resources:
+    pet:
+      type: random:index/randomPet:RandomPet
+      properties:
+        length: 2
+        prefix: platform
+  outputs:
+    name: ${pet.id}

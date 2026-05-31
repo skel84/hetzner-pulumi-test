@@ -1,0 +1,49 @@
+# Environment and local secret material
+.env
+.env.*
+!.env.example
+*.local.yaml
+*.local.yml
+*.secret.yaml
+*.secret.yml
+*.secrets.yaml
+*.secrets.yml
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Pulumi local state, stack config, and generated outputs
+.pulumi*/
+Pulumi.*.yaml
+!Pulumi.yaml
+pulumi-state/
+*.pulumi-state
+*.pulumi.json
+
+# Kubernetes and Talos access files
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+talosconfig
+talosconfig.*
+*.talosconfig
+
+# Go and local build artifacts
+bin/
+build/
+dist/
+coverage.out
+*.coverprofile
+*.test
+*.out
+
+# OS/editor noise
+.DS_Store
+.idea/
+.vscode/
+
+# Local planning scratchpad
+notes.txt
+
+examples/

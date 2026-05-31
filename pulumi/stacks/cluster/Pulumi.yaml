@@ -1,0 +1,3 @@
+name: hetzner-pulumi-cluster
+runtime: go
+description: Hetzner Talos cluster MVP preview stack.
