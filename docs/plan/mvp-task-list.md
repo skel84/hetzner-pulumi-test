@@ -121,7 +121,7 @@
 - [x] Verify Hetzner CCM health.
 - [x] Verify Argo CD health.
 - [x] Verify Pulumi Kubernetes Operator health.
-- [ ] Verify minimal PKO Stack sync.
+- [x] Verify minimal PKO Stack sync.
 - [x] Retrieve kubeconfig through `platformctl kubeconfig dev`.
 - [x] Retrieve talosconfig through `platformctl talosconfig dev`.
 - [ ] Destroy the cluster.
