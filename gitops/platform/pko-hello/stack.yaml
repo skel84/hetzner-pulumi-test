@@ -10,7 +10,7 @@ spec:
   stack: dev
   programRef:
     name: pko-hello
-  backend: file:///tmp/pulumi-state
+  backend: file:///tmp
   useLocalStackOnly: true
   destroyOnFinalize: true
   serviceAccountName: pulumi-kubernetes-operator

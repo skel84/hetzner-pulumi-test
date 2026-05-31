@@ -106,8 +106,8 @@ go run ./cmd/platformctl kubeconfig dev --out .pulumi/tmp/dev.kubeconfig
 KUBECONFIG=.pulumi/tmp/dev.kubeconfig kubectl apply --dry-run=server -k gitops/root
 ```
 
-The example PKO `Stack` intentionally uses a local file backend inside the
-operator workspace. It is only a handoff smoke test, not durable state storage.
+The example PKO `Stack` intentionally uses `file:///tmp` inside the operator
+workspace. It is only a handoff smoke test, not durable state storage.
 
 ## Retrieve Access Configs
 
