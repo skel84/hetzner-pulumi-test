@@ -124,8 +124,8 @@
 - [x] Verify minimal PKO Stack sync.
 - [x] Retrieve kubeconfig through `platformctl kubeconfig dev`.
 - [x] Retrieve talosconfig through `platformctl talosconfig dev`.
-- [ ] Destroy the cluster.
-- [ ] Confirm no MVP-owned Hetzner resources remain.
+- [x] Destroy the cluster.
+- [x] Confirm no MVP-owned Hetzner resources remain.
 
 ## Phase 8: Post-MVP Candidates
 
