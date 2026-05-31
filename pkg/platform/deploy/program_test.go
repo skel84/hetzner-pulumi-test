@@ -16,7 +16,7 @@ func TestPulumiProgramBuildsCluster(t *testing.T) {
 
 	mocks := &deployMocks{}
 	err := pulumi.RunErr(
-		PulumiProgram(validProgramEnvironment(), map[string]string{"amd64": "9001"}, "secret-token"),
+		PulumiProgram(validProgramEnvironment(), map[string]string{"amd64": "9001"}, "secret-token", "secret-passphrase"),
 		pulumi.WithMocks("project", "stack", mocks),
 	)
 	if err != nil {
@@ -40,7 +40,7 @@ func TestPulumiProgramBuildsBootstrapBaselineWhenEnabled(t *testing.T) {
 
 	mocks := &deployMocks{}
 	err := pulumi.RunErr(
-		PulumiProgram(env, map[string]string{"amd64": "9001"}, "secret-token"),
+		PulumiProgram(env, map[string]string{"amd64": "9001"}, "secret-token", "secret-passphrase"),
 		pulumi.WithMocks("project", "stack", mocks),
 	)
 	if err != nil {
@@ -71,7 +71,7 @@ func TestPulumiProgramBuildsGitOpsControlPlaneWhenEnabled(t *testing.T) {
 
 	mocks := &deployMocks{}
 	err := pulumi.RunErr(
-		PulumiProgram(env, map[string]string{"amd64": "9001"}, "secret-token"),
+		PulumiProgram(env, map[string]string{"amd64": "9001"}, "secret-token", "secret-passphrase"),
 		pulumi.WithMocks("project", "stack", mocks),
 	)
 	if err != nil {
@@ -81,6 +81,7 @@ func TestPulumiProgramBuildsGitOpsControlPlaneWhenEnabled(t *testing.T) {
 	for _, name := range []string{
 		"dev-eu-1-bootstrap-argocd",
 		"dev-eu-1-bootstrap-pulumi-kubernetes-operator",
+		"dev-eu-1-bootstrap-pulumi-kubernetes-operator-env",
 		"dev-eu-1-bootstrap-pulumi-kubernetes-operator-auth-delegator",
 	} {
 		if !mocks.hasResource(name) {
@@ -103,7 +104,7 @@ func TestPulumiProgramBuildsGitOpsRootApplicationWhenConfigured(t *testing.T) {
 
 	mocks := &deployMocks{}
 	err := pulumi.RunErr(
-		PulumiProgram(env, map[string]string{"amd64": "9001"}, "secret-token"),
+		PulumiProgram(env, map[string]string{"amd64": "9001"}, "secret-token", "secret-passphrase"),
 		pulumi.WithMocks("project", "stack", mocks),
 	)
 	if err != nil {

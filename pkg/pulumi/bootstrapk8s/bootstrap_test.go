@@ -134,10 +134,11 @@ func TestNewBootstrapRegistersGitOpsReleases(t *testing.T) {
 	mocks := &recordingMocks{}
 	err := pulumi.RunErr(func(ctx *pulumi.Context) error {
 		bootstrap, err := NewBootstrap(ctx, "dev-eu-1-bootstrap", Args{
-			ClusterName:           "dev-eu-1",
-			Kubeconfig:            pulumi.String("apiVersion: v1"),
-			InstallArgoCD:         true,
-			InstallPulumiOperator: true,
+			ClusterName:            "dev-eu-1",
+			Kubeconfig:             pulumi.String("apiVersion: v1"),
+			PulumiConfigPassphrase: pulumi.String("secret-passphrase"),
+			InstallArgoCD:          true,
+			InstallPulumiOperator:  true,
 		})
 		if err != nil {
 			return err
@@ -158,6 +159,7 @@ func TestNewBootstrapRegistersGitOpsReleases(t *testing.T) {
 	for _, name := range []string{
 		"dev-eu-1-bootstrap-argocd",
 		"dev-eu-1-bootstrap-pulumi-kubernetes-operator",
+		"dev-eu-1-bootstrap-pulumi-kubernetes-operator-env",
 		"dev-eu-1-bootstrap-pulumi-kubernetes-operator-auth-delegator",
 	} {
 		if !mocks.hasResource(name) {
@@ -191,6 +193,22 @@ func TestNewBootstrapRegistersGitOpsReleases(t *testing.T) {
 	}
 	if got := operator.inputs["namespace"].StringValue(); got != "platform-pulumi" {
 		t.Fatalf("operator namespace = %q, want platform-pulumi", got)
+	}
+
+	operatorEnv := mocks.resourceByName("dev-eu-1-bootstrap-pulumi-kubernetes-operator-env")
+	operatorEnvMetadata := operatorEnv.inputs["metadata"].ObjectValue()
+	if got := operatorEnvMetadata["name"].StringValue(); got != DefaultPulumiOperatorEnvSecret {
+		t.Fatalf("operator env secret name = %q, want %s", got, DefaultPulumiOperatorEnvSecret)
+	}
+	if got := operatorEnvMetadata["namespace"].StringValue(); got != "platform-pulumi" {
+		t.Fatalf("operator env secret namespace = %q, want platform-pulumi", got)
+	}
+	operatorEnvStringData := operatorEnv.inputs["stringData"]
+	if !operatorEnvStringData.IsSecret() {
+		t.Fatal("operator env stringData is not marked secret")
+	}
+	if got := operatorEnvStringData.SecretValue().Element.ObjectValue()["PULUMI_CONFIG_PASSPHRASE"].StringValue(); got != "secret-passphrase" {
+		t.Fatalf("operator env passphrase = %q, want test passphrase", got)
 	}
 
 	authDelegator := mocks.resourceByName("dev-eu-1-bootstrap-pulumi-kubernetes-operator-auth-delegator")

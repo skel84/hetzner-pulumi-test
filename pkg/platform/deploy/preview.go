@@ -65,12 +65,13 @@ func PreviewCluster(ctx context.Context, opts PreviewOptions) (PreviewResult, er
 	}
 
 	return runner(ctx, automationProgramOptions{
-		ProjectName: opts.ProjectName,
-		StackName:   opts.StackName,
-		WorkDir:     opts.WorkDir,
-		EnvVars:     copyStringMap(opts.EnvVars),
-		HCloudToken: opts.EnvVars["HCLOUD_TOKEN"],
-		Environment: prepared.Environment,
+		ProjectName:            opts.ProjectName,
+		StackName:              opts.StackName,
+		WorkDir:                opts.WorkDir,
+		EnvVars:                copyStringMap(opts.EnvVars),
+		HCloudToken:            opts.EnvVars["HCLOUD_TOKEN"],
+		PulumiConfigPassphrase: opts.EnvVars["PULUMI_CONFIG_PASSPHRASE"],
+		Environment:            prepared.Environment,
 	})
 }
 
@@ -87,7 +88,7 @@ func runAutomationPreview(ctx context.Context, opts automationProgramOptions) (P
 		ctx,
 		opts.StackName,
 		opts.ProjectName,
-		PulumiProgram(opts.Environment, opts.ImageRefs, opts.HCloudToken),
+		PulumiProgram(opts.Environment, opts.ImageRefs, opts.HCloudToken, opts.PulumiConfigPassphrase),
 		stackOptions(opts.ProjectName, opts.WorkDir, envVars)...,
 	)
 	if err != nil {

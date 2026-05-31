@@ -8,7 +8,7 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-func PulumiProgram(env config.EnvironmentSpec, imageRefs map[string]string, hcloudToken string) pulumi.RunFunc {
+func PulumiProgram(env config.EnvironmentSpec, imageRefs map[string]string, hcloudToken string, pulumiConfigPassphrase string) pulumi.RunFunc {
 	return func(ctx *pulumi.Context) error {
 		args := hetznertalos.ClusterArgsFromEnvironment(env)
 		args.TalosImages = copyStringMap(imageRefs)
@@ -21,12 +21,13 @@ func PulumiProgram(env config.EnvironmentSpec, imageRefs map[string]string, hclo
 		}
 		if args.Packages.ClusterBaseline {
 			if _, err := bootstrapk8s.NewBootstrap(ctx, env.Cluster.Name+"-bootstrap", bootstrapk8s.Args{
-				ClusterName:           args.ClusterName,
-				Kubeconfig:            cluster.Kubeconfig,
-				HCloudToken:           pulumi.ToSecret(pulumi.String(hcloudToken)).(pulumi.StringOutput),
-				InstallCilium:         true,
-				InstallArgoCD:         args.Packages.GitOpsControlPlane,
-				InstallPulumiOperator: args.Packages.GitOpsControlPlane,
+				ClusterName:            args.ClusterName,
+				Kubeconfig:             cluster.Kubeconfig,
+				HCloudToken:            pulumi.ToSecret(pulumi.String(hcloudToken)).(pulumi.StringOutput),
+				PulumiConfigPassphrase: pulumi.ToSecret(pulumi.String(pulumiConfigPassphrase)).(pulumi.StringOutput),
+				InstallCilium:          true,
+				InstallArgoCD:          args.Packages.GitOpsControlPlane,
+				InstallPulumiOperator:  args.Packages.GitOpsControlPlane,
 				GitOpsRoot: bootstrapk8s.GitOpsRootSpec{
 					RepoURL:        env.GitOps.RepoURL,
 					TargetRevision: env.GitOps.TargetRevision,

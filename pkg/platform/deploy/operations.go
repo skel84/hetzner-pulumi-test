@@ -63,15 +63,16 @@ type upRunner func(context.Context, automationProgramOptions) (UpResult, error)
 type destroyRunner func(context.Context, automationStackOptions) (DestroyResult, error)
 
 type automationProgramOptions struct {
-	ProjectName string
-	StackName   string
-	WorkDir     string
-	EnvVars     map[string]string
-	HCloudToken string
-	Environment config.EnvironmentSpec
-	ImageRefs   map[string]string
-	Stdout      io.Writer
-	Stderr      io.Writer
+	ProjectName            string
+	StackName              string
+	WorkDir                string
+	EnvVars                map[string]string
+	HCloudToken            string
+	PulumiConfigPassphrase string
+	Environment            config.EnvironmentSpec
+	ImageRefs              map[string]string
+	Stdout                 io.Writer
+	Stderr                 io.Writer
 }
 
 type automationStackOptions struct {
@@ -123,15 +124,16 @@ func UpCluster(ctx context.Context, opts UpOptions) (UpResult, error) {
 	}
 
 	result, err := runner(ctx, automationProgramOptions{
-		ProjectName: opts.ProjectName,
-		StackName:   opts.StackName,
-		WorkDir:     opts.WorkDir,
-		EnvVars:     copyStringMap(opts.EnvVars),
-		HCloudToken: opts.EnvVars["HCLOUD_TOKEN"],
-		Environment: prepared.Environment,
-		ImageRefs:   copyStringMap(images.Refs),
-		Stdout:      opts.Stdout,
-		Stderr:      opts.Stderr,
+		ProjectName:            opts.ProjectName,
+		StackName:              opts.StackName,
+		WorkDir:                opts.WorkDir,
+		EnvVars:                copyStringMap(opts.EnvVars),
+		HCloudToken:            opts.EnvVars["HCLOUD_TOKEN"],
+		PulumiConfigPassphrase: opts.EnvVars["PULUMI_CONFIG_PASSPHRASE"],
+		Environment:            prepared.Environment,
+		ImageRefs:              copyStringMap(images.Refs),
+		Stdout:                 opts.Stdout,
+		Stderr:                 opts.Stderr,
 	})
 	if err != nil {
 		return UpResult{}, err
@@ -181,7 +183,7 @@ func runAutomationUp(ctx context.Context, opts automationProgramOptions) (UpResu
 		ctx,
 		opts.StackName,
 		opts.ProjectName,
-		PulumiProgram(opts.Environment, opts.ImageRefs, opts.HCloudToken),
+		PulumiProgram(opts.Environment, opts.ImageRefs, opts.HCloudToken, opts.PulumiConfigPassphrase),
 		stackOptions(opts.ProjectName, opts.WorkDir, envVars)...,
 	)
 	if err != nil {

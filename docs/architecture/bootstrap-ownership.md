@@ -21,6 +21,7 @@ cluster exposes a working kubeconfig:
 - `kube-system/hcloud` secret for Hetzner CCM
 - Argo CD installation
 - Pulumi Kubernetes Operator installation
+- Pulumi Kubernetes Operator passphrase Secret sourced from local `.env`
 - Pulumi Kubernetes Operator auth-delegator RBAC binding
 - optional seed Argo CD `Application` named `platform-root`
 

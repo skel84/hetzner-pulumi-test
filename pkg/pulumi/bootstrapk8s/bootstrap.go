@@ -24,6 +24,7 @@ const (
 	DefaultArgoCDChart                = "https://github.com/argoproj/argo-helm/releases/download/argo-cd-" + DefaultArgoCDChartVersion + "/argo-cd-" + DefaultArgoCDChartVersion + ".tgz"
 	DefaultPulumiOperatorChart        = "oci://ghcr.io/pulumi/helm-charts/pulumi-kubernetes-operator"
 	DefaultPulumiOperatorChartVersion = "2.7.0"
+	DefaultPulumiOperatorEnvSecret    = "pulumi-kubernetes-operator-env"
 	DefaultGitOpsTargetRevision       = "main"
 	DefaultGitOpsRootPath             = "gitops/root"
 )
@@ -31,14 +32,15 @@ const (
 var kubernetesNamePattern = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
 
 type Args struct {
-	ClusterName           string
-	Kubeconfig            pulumi.StringInput
-	HCloudToken           pulumi.StringInput
-	Namespaces            []NamespaceSpec
-	InstallCilium         bool
-	InstallArgoCD         bool
-	InstallPulumiOperator bool
-	GitOpsRoot            GitOpsRootSpec
+	ClusterName            string
+	Kubeconfig             pulumi.StringInput
+	HCloudToken            pulumi.StringInput
+	PulumiConfigPassphrase pulumi.StringInput
+	Namespaces             []NamespaceSpec
+	InstallCilium          bool
+	InstallArgoCD          bool
+	InstallPulumiOperator  bool
+	GitOpsRoot             GitOpsRootSpec
 }
 
 type NamespaceSpec struct {
@@ -56,15 +58,16 @@ type GitOpsRootSpec struct {
 type Bootstrap struct {
 	pulumi.ResourceState
 
-	Provider         *kubernetes.Provider
-	HCloudSecret     *corev1.Secret
-	Namespaces       []*corev1.Namespace
-	NetworkPolicies  []*networkingv1.NetworkPolicy
-	Cilium           *helmv3.Release
-	ArgoCD           *helmv3.Release
-	PulumiOperator   *helmv3.Release
-	PKOAuthDelegator *rbacv1.ClusterRoleBinding
-	RootApplication  *apiextensions.CustomResource
+	Provider          *kubernetes.Provider
+	HCloudSecret      *corev1.Secret
+	Namespaces        []*corev1.Namespace
+	NetworkPolicies   []*networkingv1.NetworkPolicy
+	Cilium            *helmv3.Release
+	ArgoCD            *helmv3.Release
+	PulumiOperator    *helmv3.Release
+	PulumiOperatorEnv *corev1.Secret
+	PKOAuthDelegator  *rbacv1.ClusterRoleBinding
+	RootApplication   *apiextensions.CustomResource
 }
 
 func NewBootstrap(ctx *pulumi.Context, name string, args Args, opts ...pulumi.ResourceOption) (*Bootstrap, error) {
@@ -204,6 +207,24 @@ func NewBootstrap(ctx *pulumi.Context, name string, args Args, opts ...pulumi.Re
 			return nil, err
 		}
 		bootstrap.PulumiOperator = operator
+
+		if args.PulumiConfigPassphrase != nil {
+			operatorEnv, err := corev1.NewSecret(ctx, name+"-pulumi-kubernetes-operator-env", &corev1.SecretArgs{
+				Metadata: metav1.ObjectMetaArgs{
+					Name:      pulumi.String(DefaultPulumiOperatorEnvSecret),
+					Namespace: pulumi.String("platform-pulumi"),
+					Labels:    baseLabels(args.ClusterName, "pulumi kubernetes operator env"),
+				},
+				StringData: pulumi.StringMap{
+					"PULUMI_CONFIG_PASSPHRASE": args.PulumiConfigPassphrase,
+				},
+				Type: pulumi.StringPtr("Opaque"),
+			}, releaseOpts...)
+			if err != nil {
+				return nil, err
+			}
+			bootstrap.PulumiOperatorEnv = operatorEnv
+		}
 
 		authDelegatorOpts := append([]pulumi.ResourceOption{}, childOpts...)
 		authDelegatorOpts = append(authDelegatorOpts, pulumi.DependsOn([]pulumi.Resource{operator}))

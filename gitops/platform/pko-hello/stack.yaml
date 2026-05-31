@@ -11,6 +11,12 @@ spec:
   programRef:
     name: pko-hello
   backend: file:///tmp
+  envRefs:
+    PULUMI_CONFIG_PASSPHRASE:
+      type: Secret
+      secret:
+        name: pulumi-kubernetes-operator-env
+        key: PULUMI_CONFIG_PASSPHRASE
   destroyOnFinalize: true
   serviceAccountName: pulumi-kubernetes-operator
   workspaceReclaimPolicy: Delete

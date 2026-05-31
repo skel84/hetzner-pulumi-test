@@ -62,6 +62,7 @@ Pulumi owns:
 - bootstrap Pod Security labels and baseline network policy
 - Argo CD installation
 - Pulumi Kubernetes Operator installation
+- Pulumi Kubernetes Operator passphrase Secret sourced from local `.env`
 - Pulumi Kubernetes Operator auth-delegator RBAC binding
 - optional seed `platform-root` Argo CD Application when `gitops.repoUrl` is set
 

@@ -107,7 +107,9 @@ KUBECONFIG=.pulumi/tmp/dev.kubeconfig kubectl apply --dry-run=server -k gitops/r
 ```
 
 The example PKO `Stack` intentionally uses `file:///tmp` inside the operator
-workspace. It is only a handoff smoke test, not durable state storage.
+workspace and reads `PULUMI_CONFIG_PASSPHRASE` from the Pulumi-owned
+`platform-pulumi/pulumi-kubernetes-operator-env` Secret. It is only a handoff
+smoke test, not durable state storage.
 
 ## Retrieve Access Configs
 
