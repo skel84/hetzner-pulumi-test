@@ -11,6 +11,7 @@ import (
 	helmv3 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/helm/v3"
 	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/meta/v1"
 	networkingv1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/networking/v1"
+	rbacv1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/rbac/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
@@ -55,14 +56,15 @@ type GitOpsRootSpec struct {
 type Bootstrap struct {
 	pulumi.ResourceState
 
-	Provider        *kubernetes.Provider
-	HCloudSecret    *corev1.Secret
-	Namespaces      []*corev1.Namespace
-	NetworkPolicies []*networkingv1.NetworkPolicy
-	Cilium          *helmv3.Release
-	ArgoCD          *helmv3.Release
-	PulumiOperator  *helmv3.Release
-	RootApplication *apiextensions.CustomResource
+	Provider         *kubernetes.Provider
+	HCloudSecret     *corev1.Secret
+	Namespaces       []*corev1.Namespace
+	NetworkPolicies  []*networkingv1.NetworkPolicy
+	Cilium           *helmv3.Release
+	ArgoCD           *helmv3.Release
+	PulumiOperator   *helmv3.Release
+	PKOAuthDelegator *rbacv1.ClusterRoleBinding
+	RootApplication  *apiextensions.CustomResource
 }
 
 func NewBootstrap(ctx *pulumi.Context, name string, args Args, opts ...pulumi.ResourceOption) (*Bootstrap, error) {
@@ -202,6 +204,31 @@ func NewBootstrap(ctx *pulumi.Context, name string, args Args, opts ...pulumi.Re
 			return nil, err
 		}
 		bootstrap.PulumiOperator = operator
+
+		authDelegatorOpts := append([]pulumi.ResourceOption{}, childOpts...)
+		authDelegatorOpts = append(authDelegatorOpts, pulumi.DependsOn([]pulumi.Resource{operator}))
+		authDelegator, err := rbacv1.NewClusterRoleBinding(ctx, name+"-pulumi-kubernetes-operator-auth-delegator", &rbacv1.ClusterRoleBindingArgs{
+			Metadata: metav1.ObjectMetaArgs{
+				Name:   pulumi.String("platform-pulumi:pulumi-kubernetes-operator:system:auth-delegator"),
+				Labels: baseLabels(args.ClusterName, "pulumi kubernetes operator auth"),
+			},
+			RoleRef: rbacv1.RoleRefArgs{
+				ApiGroup: pulumi.StringPtr("rbac.authorization.k8s.io"),
+				Kind:     pulumi.String("ClusterRole"),
+				Name:     pulumi.String("system:auth-delegator"),
+			},
+			Subjects: rbacv1.SubjectArray{
+				rbacv1.SubjectArgs{
+					Kind:      pulumi.String("ServiceAccount"),
+					Name:      pulumi.String("pulumi-kubernetes-operator"),
+					Namespace: pulumi.StringPtr("platform-pulumi"),
+				},
+			},
+		}, authDelegatorOpts...)
+		if err != nil {
+			return nil, err
+		}
+		bootstrap.PKOAuthDelegator = authDelegator
 	}
 
 	if gitOpsRootEnabled(args.GitOpsRoot) {

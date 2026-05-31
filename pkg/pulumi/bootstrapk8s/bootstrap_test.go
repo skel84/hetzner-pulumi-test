@@ -158,6 +158,7 @@ func TestNewBootstrapRegistersGitOpsReleases(t *testing.T) {
 	for _, name := range []string{
 		"dev-eu-1-bootstrap-argocd",
 		"dev-eu-1-bootstrap-pulumi-kubernetes-operator",
+		"dev-eu-1-bootstrap-pulumi-kubernetes-operator-auth-delegator",
 	} {
 		if !mocks.hasResource(name) {
 			t.Fatalf("expected resource %q, got %#v", name, mocks.names())
@@ -190,6 +191,26 @@ func TestNewBootstrapRegistersGitOpsReleases(t *testing.T) {
 	}
 	if got := operator.inputs["namespace"].StringValue(); got != "platform-pulumi" {
 		t.Fatalf("operator namespace = %q, want platform-pulumi", got)
+	}
+
+	authDelegator := mocks.resourceByName("dev-eu-1-bootstrap-pulumi-kubernetes-operator-auth-delegator")
+	authMetadata := authDelegator.inputs["metadata"].ObjectValue()
+	if got := authMetadata["name"].StringValue(); got != "platform-pulumi:pulumi-kubernetes-operator:system:auth-delegator" {
+		t.Fatalf("auth delegator binding name = %q, want operator auth-delegator binding", got)
+	}
+	roleRef := authDelegator.inputs["roleRef"].ObjectValue()
+	if got := roleRef["name"].StringValue(); got != "system:auth-delegator" {
+		t.Fatalf("auth delegator roleRef.name = %q, want system:auth-delegator", got)
+	}
+	subject := authDelegator.inputs["subjects"].ArrayValue()[0].ObjectValue()
+	if got := subject["kind"].StringValue(); got != "ServiceAccount" {
+		t.Fatalf("auth delegator subject kind = %q, want ServiceAccount", got)
+	}
+	if got := subject["name"].StringValue(); got != "pulumi-kubernetes-operator" {
+		t.Fatalf("auth delegator subject name = %q, want pulumi-kubernetes-operator", got)
+	}
+	if got := subject["namespace"].StringValue(); got != "platform-pulumi" {
+		t.Fatalf("auth delegator subject namespace = %q, want platform-pulumi", got)
 	}
 }
 

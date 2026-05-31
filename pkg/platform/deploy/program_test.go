@@ -81,6 +81,7 @@ func TestPulumiProgramBuildsGitOpsControlPlaneWhenEnabled(t *testing.T) {
 	for _, name := range []string{
 		"dev-eu-1-bootstrap-argocd",
 		"dev-eu-1-bootstrap-pulumi-kubernetes-operator",
+		"dev-eu-1-bootstrap-pulumi-kubernetes-operator-auth-delegator",
 	} {
 		if !mocks.hasResource(name) {
 			t.Fatalf("expected resource %q, got %#v", name, mocks.names())
